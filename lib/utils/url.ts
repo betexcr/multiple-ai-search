@@ -23,11 +23,11 @@ export async function getBaseUrlFromHeaders(): Promise<URL> {
       }${host}`
       return new URL(constructedUrl)
     } else {
-      return new URL('http://localhost:3000')
+      return new URL('https://ai.ultharcr.com')
     }
   } catch (urlError) {
     // Fallback to default URL if any error occurs during URL construction
-    return new URL('http://localhost:3000')
+    return new URL('https://ai.ultharcr.com')
   }
 }
 
