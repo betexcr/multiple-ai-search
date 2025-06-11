@@ -54,11 +54,11 @@ export function LoginForm({
     setIsLoading(true)
     setError(null)
 
-    try {
+    try { 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${process.env.BASE_URL}/auth/oauth`
+          redirectTo: `https://ai.ulthar.com/auth/oauth`
         }
       })
       if (error) throw error
