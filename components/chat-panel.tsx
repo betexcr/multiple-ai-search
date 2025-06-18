@@ -4,7 +4,7 @@ import { Model } from '@/lib/types/models'
 import { cn } from '@/lib/utils'
 import { Message } from 'ai'
 import { ArrowUp, ChevronDown, MessageCirclePlus, Square } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
 import { useArtifact } from './artifact/artifact-context'
@@ -47,11 +47,34 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const [showEmptyScreen, setShowEmptyScreen] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const isFirstRender = useRef(true)
   const [isComposing, setIsComposing] = useState(false) // Composition state
   const [enterDisabled, setEnterDisabled] = useState(false) // Disable Enter after composition ends
   const { close: closeArtifact } = useArtifact()
+  useEffect(() => {
+    const code = searchParams.get('code')
+
+    if (code && typeof code === 'string') {
+      const forwardCode = async () => {
+        try {
+          await fetch(`/auth/oauth?code=${encodeURIComponent(code)}`, {
+            method: 'GET', // or POST if you prefer
+            credentials: 'include',
+          });
+
+          // Clean the URL without reloading
+          const cleanedUrl = window.location.pathname;
+          window.history.replaceState({}, '', cleanedUrl);
+        } catch (err) {
+          console.error('OAuth forwarding failed', err);
+        }
+      };
+
+      forwardCode();
+    }
+  }, [searchParams]);
 
   const handleCompositionStart = () => setIsComposing(true)
 
