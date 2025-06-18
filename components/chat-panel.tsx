@@ -57,24 +57,9 @@ export function ChatPanel({
     const code = searchParams.get('code')
 
     if (code && typeof code === 'string') {
-      const forwardCode = async () => {
-        try {
-          await fetch(`/auth/oauth?code=${encodeURIComponent(code)}`, {
-            method: 'GET', // or POST if you prefer
-            credentials: 'include',
-          });
-
-          // Clean the URL without reloading
-          const cleanedUrl = window.location.pathname;
-          window.history.replaceState({}, '', cleanedUrl);
-        } catch (err) {
-          console.error('OAuth forwarding failed', err);
-        }
-      };
-
-      forwardCode();
+      window.location.href = `/auth/oauth?code=${encodeURIComponent(code)}`
     }
-  }, [searchParams]);
+  }, [searchParams])
 
   const handleCompositionStart = () => setIsComposing(true)
 
