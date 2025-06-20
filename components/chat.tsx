@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import { useChat } from '@ai-sdk/react'
 import { ChatRequestOptions } from 'ai'
 import { Message } from 'ai/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { toast } from 'sonner'
 import { ChatMessages } from './chat-messages'
 import { ChatPanel } from './chat-panel'
@@ -18,7 +18,7 @@ interface ChatSection {
   assistantMessages: Message[]
 }
 
-export function Chat({
+export function Chat ({
   id,
   savedMessages = [],
   query,
@@ -200,38 +200,40 @@ export function Chat({
   }
 
   return (
-    <div
-      className={cn(
-        'relative flex h-full min-w-0 flex-1 flex-col',
-        messages.length === 0 ? 'items-center justify-center' : ''
-      )}
-      data-testid="full-chat"
-    >
-      <ChatMessages
-        sections={sections}
-        data={data}
-        onQuerySelect={onQuerySelect}
-        isLoading={isLoading}
-        chatId={id}
-        addToolResult={addToolResult}
-        scrollContainerRef={scrollContainerRef}
-        onUpdateMessage={handleUpdateAndReloadMessage}
-        reload={handleReloadFrom}
-      />
-      <ChatPanel
-        input={input}
-        handleInputChange={handleInputChange}
-        handleSubmit={onSubmit}
-        isLoading={isLoading}
-        messages={messages}
-        setMessages={setMessages}
-        stop={stop}
-        query={query}
-        append={append}
-        models={models}
-        showScrollToBottomButton={!isAtBottom}
-        scrollContainerRef={scrollContainerRef}
-      />
-    </div>
+    <Suspense>
+      <div
+        className={cn(
+          'relative flex h-full min-w-0 flex-1 flex-col',
+          messages.length === 0 ? 'items-center justify-center' : ''
+        )}
+        data-testid='full-chat'
+      >
+        <ChatMessages
+          sections={sections}
+          data={data}
+          onQuerySelect={onQuerySelect}
+          isLoading={isLoading}
+          chatId={id}
+          addToolResult={addToolResult}
+          scrollContainerRef={scrollContainerRef}
+          onUpdateMessage={handleUpdateAndReloadMessage}
+          reload={handleReloadFrom}
+        />
+        <ChatPanel
+          input={input}
+          handleInputChange={handleInputChange}
+          handleSubmit={onSubmit}
+          isLoading={isLoading}
+          messages={messages}
+          setMessages={setMessages}
+          stop={stop}
+          query={query}
+          append={append}
+          models={models}
+          showScrollToBottomButton={!isAtBottom}
+          scrollContainerRef={scrollContainerRef}
+        />
+      </div>
+    </Suspense>
   )
 }
