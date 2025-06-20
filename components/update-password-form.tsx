@@ -12,16 +12,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/index'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
-export function UpdatePasswordForm({
+export function UpdatePasswordForm ({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams()
   const router = useRouter()
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -31,6 +32,8 @@ export function UpdatePasswordForm({
     setError(null)
 
     try {
+      const code = searchParams.get('code')
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
       // Redirect to root and refresh to ensure server components get updated session.
@@ -47,27 +50,27 @@ export function UpdatePasswordForm({
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+          <CardTitle className='text-2xl'>Reset Your Password</CardTitle>
           <CardDescription>
             Please enter your new password below.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleForgotPassword}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="password">New password</Label>
+            <div className='flex flex-col gap-6'>
+              <div className='grid gap-2'>
+                <Label htmlFor='password'>New password</Label>
                 <Input
-                  id="password"
-                  type="password"
-                  placeholder="New password"
+                  id='password'
+                  type='password'
+                  placeholder='New password'
                   required
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              {error && <p className='text-sm text-red-500'>{error}</p>}
+              <Button type='submit' className='w-full' disabled={isLoading}>
                 {isLoading ? 'Saving...' : 'Save new password'}
               </Button>
             </div>
