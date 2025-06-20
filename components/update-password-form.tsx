@@ -12,36 +12,48 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/index'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
-export function UpdatePasswordForm ({
+export function UpdatePasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<'div'>) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const searchParams = useSearchParams()
+  const [sessionChecked, setSessionChecked] = useState(false)
+
   const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession()
+      if (!data?.session) {
+        setError(
+          'Session expired or missing. Please use the reset link from your email again.'
+        )
+      }
+      setSessionChecked(true)
+    }
+
+    checkSession()
+  }, [supabase])
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const code = searchParams.get('code')
-      
-      const errorResponse = await supabase.auth.exchangeCodeForSession(code as string)
-      let errorData = errorResponse.error
       const { error } = await supabase.auth.updateUser({ password })
-      if (error || errorData) throw error
-      // Redirect to root and refresh to ensure server components get updated session.
+      if (error) throw error
+
       router.push('/')
       router.refresh()
     } catch (error: unknown) {
+      console.error('Error updating password:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setIsLoading(false)
@@ -52,31 +64,35 @@ export function UpdatePasswordForm ({
     <div className={cn('flex flex-col gap-6', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className='text-2xl'>Reset Your Password</CardTitle>
+          <CardTitle className="text-2xl">Reset Your Password</CardTitle>
           <CardDescription>
             Please enter your new password below.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleForgotPassword}>
-            <div className='flex flex-col gap-6'>
-              <div className='grid gap-2'>
-                <Label htmlFor='password'>New password</Label>
-                <Input
-                  id='password'
-                  type='password'
-                  placeholder='New password'
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
+          {sessionChecked ? (
+            <form onSubmit={handleForgotPassword}>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-2">
+                  <Label htmlFor="password">New password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="New password"
+                    required
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                  />
+                </div>
+                {error && <p className="text-sm text-red-500">{error}</p>}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? 'Saving...' : 'Save new password'}
+                </Button>
               </div>
-              {error && <p className='text-sm text-red-500'>{error}</p>}
-              <Button type='submit' className='w-full' disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save new password'}
-              </Button>
-            </div>
-          </form>
+            </form>
+          ) : (
+            <p className="text-sm text-muted-foreground">Checking session...</p>
+          )}
         </CardContent>
       </Card>
     </div>
