@@ -33,9 +33,11 @@ export function UpdatePasswordForm ({
 
     try {
       const code = searchParams.get('code')
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      
+      const errorResponse = await supabase.auth.exchangeCodeForSession(code as string)
+      let errorData = errorResponse.error
       const { error } = await supabase.auth.updateUser({ password })
-      if (error) throw error
+      if (error || errorData) throw error
       // Redirect to root and refresh to ensure server components get updated session.
       router.push('/')
       router.refresh()
